@@ -1,2 +1,2 @@
-# godeply
+# godeploy
 deploy mini project bioskop
