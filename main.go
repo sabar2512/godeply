@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -25,7 +26,11 @@ var db *sqlx.DB
 func main() {
 	var err error
 	// Koneksi ke PostgreSQL
-	dsn := "host=localhost port=5432 user=sabar password=postgres dbname=bioskopdb sslmode=disable"
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		log.Fatal("DATABASE_URL tidak ditemukan. Pastikan sudah diset di Railway.")
+	}
+
 	db, err = sqlx.Connect("postgres", dsn)
 	if err != nil {
 		log.Fatal("Gagal koneksi database:", err)
@@ -48,9 +53,16 @@ func main() {
 	r.PUT("/bioskop/:id", updateBioskop)    // Update
 	r.DELETE("/bioskop/:id", deleteBioskop) // Delete
 
+	// Railway memakai PORT dari environment
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // tetap jalan di lokal
+	}
+
 	// Jalankan server
-	log.Println("Server berjalan di http://localhost:8080")
-	r.Run(":8080")
+	log.Println("Server berjalan di port:", port)
+	r.Run(":" + port)
+
 }
 
 // Handler POST /bioskop - Create
@@ -304,4 +316,5 @@ func deleteBioskop(c *gin.Context) {
 		"message": "Bioskop berhasil dihapus",
 		"data":    bioskop,
 	})
+
 }
